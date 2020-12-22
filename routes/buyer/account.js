@@ -8,6 +8,8 @@ const {
   deleteAccount,
   updateAccount,
   login,
+  forgotPassword,
+  changePassword,
 } = require("../../controllers/buyer/account");
 
 router
@@ -16,6 +18,8 @@ router
   .get("/account/readOne", readAccount)
   .get("/account/readAll", readAccounts)
   .post("/account/delete", deleteAccount)
+  .post("/account/forgot-password", forgotPassword)
+  .post("/account/change-password", changePassword)
   .post("/account/login", login);
 
 module.exports = router;

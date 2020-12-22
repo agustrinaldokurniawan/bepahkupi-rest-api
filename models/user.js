@@ -17,7 +17,10 @@ const userSchema = new Schema(
     },
     status: {
       type: String,
-      required: true,
+      default: "active",
+    },
+    issue: {
+      type: String,
     },
   },
   { timestamps: true }

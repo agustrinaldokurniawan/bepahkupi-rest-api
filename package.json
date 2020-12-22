@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "array-find-index": "^1.0.2",
     "aws-sdk": "^2.814.0",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
@@ -17,7 +18,12 @@
     "multer": "^1.4.2",
     "multer-s3": "^2.9.0",
     "nodemon": "^2.0.6",
+    "numeral": "^2.0.6",
     "order-id": "^2.1.0",
+    "rajaongkir-nodejs": "^0.2.0",
+    "randomstring": "^1.1.5",
+    "request": "^2.88.2",
+    "shortid": "^2.2.16",
     "slugify": "^1.4.6"
   },
   "devDependencies": {},

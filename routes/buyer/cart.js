@@ -7,11 +7,13 @@ const {
   deleteCart,
   readCart,
   readCarts,
+  increaseByQuantity,
+  decreasebyQuantity,
 } = require("../../controllers/buyer/cart");
 
 router
-  .post("/cart/add-to-cart", addToCart)
-  .post("/cart/remove-from-cart", removeFromCart)
+  .post("/cart/inc-by-qty", increaseByQuantity)
+  .post("/cart/dec-by-qty", decreasebyQuantity)
   .get("/cart/readOne", readCart)
   .get("/cart/readAll", readCarts)
   .post("/cart/delete", deleteCart);

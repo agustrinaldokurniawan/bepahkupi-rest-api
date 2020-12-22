@@ -7,29 +7,42 @@ const cartSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-    cart: [
-      {
-        product: {
-          type: Schema.Types.ObjectId,
-          ref: "Product",
+    cart: {
+      cart: [
+        {
+          product: {
+            type: Schema.Types.ObjectId,
+            ref: "Product",
+          },
+          weight: {
+            type: Number,
+          },
+          type: {
+            type: String,
+          },
+          groundLevel: {
+            type: String,
+          },
+          price: {
+            type: Number,
+          },
+          quantity: {
+            type: Number,
+            default: 1,
+          },
         },
-        weight: {
-          type: Number,
-        },
-        groundLevel: {
-          type: String,
-        },
-        type: {
-          type: String,
-        },
-        quantity: {
-          type: Number,
-        },
+      ],
+      totalPrice: {
+        type: Number,
       },
-    ],
+    },
     status: {
       type: String,
       default: "active",
+    },
+    onProgress: {
+      type: String,
+      default: "cart",
     },
   },
   { timestamps: true }

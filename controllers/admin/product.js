@@ -2,6 +2,8 @@ const upload = require("../services/files");
 const Product = require("../../models/product");
 const product = require("../../models/product");
 
+const slugify = require("slugify");
+
 const singleUpload = upload.single("image");
 
 exports.createProduct = (req, res) => {
@@ -21,6 +23,7 @@ exports.createProduct = (req, res) => {
 
       const newProduct = new Product({
         name,
+        slug: slugify(name),
         type,
         groundLevel,
         price,
@@ -38,9 +41,9 @@ exports.createProduct = (req, res) => {
 };
 
 exports.readProduct = (req, res) => {
-  const { id } = req.query;
+  const { slug } = req.query;
 
-  Product.findById(id, (err, docs) => {
+  Product.findOne({ slug }, (err, docs) => {
     if (err) return res.json(err);
 
     if (!docs) return res.json({ message: "Product not found" });

@@ -31,6 +31,7 @@ const userProductRoutes = require("./routes/buyer/product");
 const userCartRoutes = require("./routes/buyer/cart");
 const userOrderRoutes = require("./routes/buyer/order");
 const userWishlistRoutes = require("./routes/buyer/wishlist");
+const userReviewRoutes = require("./routes/buyer/review");
 
 app.use("/admin", adminAccountRoutes, adminProductRoutes);
 
@@ -40,7 +41,8 @@ app.use(
   userProductRoutes,
   userCartRoutes,
   userOrderRoutes,
-  userWishlistRoutes
+  userWishlistRoutes,
+  userReviewRoutes
 );
 
 const server = app.listen(process.env.PORT || 8000, (err) => {

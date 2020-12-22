@@ -8,15 +8,22 @@ const orderSchema = new Schema(
       ref: "User",
     },
     voucher: {
-      type: Schema.Types.ObjectId,
-      ref: "Voucher",
+      type: String,
     },
     cart: {
       type: Schema.Types.ObjectId,
       ref: "Cart",
     },
     payment: {
-      type: JSON,
+      type: {
+        type: String,
+      },
+      name: {
+        type: String,
+      },
+      response: {
+        type: Object,
+      },
     },
     shipping: {
       name: {
@@ -32,18 +39,40 @@ const orderSchema = new Schema(
         type: String,
       },
       courier: {
-        type: JSON,
+        weight: {
+          type: Number,
+        },
+        cost: {
+          type: Number,
+        },
+        estimation: {
+          type: String,
+        },
+        courier: {
+          type: String,
+        },
+        service: {
+          type: String,
+        },
+        destination_details: {
+          city: Object,
+          subdistrict: Object,
+        },
       },
       resi: {
         type: String,
       },
       status: {
         type: String,
+        default: null,
       },
+    },
+    amount: {
+      type: Number,
     },
     status: {
       type: String,
-      default: "active",
+      default: "payment",
     },
   },
   { timestamps: true }

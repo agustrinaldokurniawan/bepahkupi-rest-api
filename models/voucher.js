@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const reviewProduct = new Schema(
+const voucherSchema = new Schema(
   {
     author: {
       type: Schema.Types.ObjectId,
@@ -25,4 +25,4 @@ const reviewProduct = new Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Review", reviewProduct);
+module.exports = mongoose.model("Voucher", voucherSchema);
