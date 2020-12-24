@@ -8,6 +8,8 @@ const CORS = require("cors");
 
 const app = express();
 
+app.use(CORS());
+
 mongoose.connect(
   process.env.MONGODB,
   { useNewUrlParser: true, useUnifiedTopology: true },
@@ -21,7 +23,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use(morgan("combined"));
-app.use(CORS());
 
 const adminAccountRoutes = require("./routes/admin/account");
 const adminProductRoutes = require("./routes/admin/product");
