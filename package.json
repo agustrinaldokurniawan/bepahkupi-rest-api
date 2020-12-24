@@ -24,7 +24,8 @@
     "randomstring": "^1.1.5",
     "request": "^2.88.2",
     "shortid": "^2.2.16",
-    "slugify": "^1.4.6"
+    "slugify": "^1.4.6",
+    "xendit-node": "^1.4.0"
   },
   "devDependencies": {},
   "scripts": {

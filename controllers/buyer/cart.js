@@ -38,6 +38,9 @@ exports.increaseByQuantity = (req, res) => {
 
         newCart.save((err, docs) => {
           if (err) return res.json(err);
+
+          // console.log({ docs });
+
           return res.json({ cart: docs });
         });
       } else {
@@ -78,6 +81,9 @@ exports.increaseByQuantity = (req, res) => {
 
         docs.save((err, docs) => {
           if (err) return res.json(err);
+
+          // console.log({ docs });
+
           return res.json({ cart: docs });
         });
       }
@@ -148,6 +154,8 @@ exports.addOneToCart = (req, res) => {};
 
 exports.readCart = (req, res) => {
   const { userId } = req.query;
+
+  console.log({ data: req.paymentChannels });
 
   Cart.findOne({ user: userId, status: "active" })
     .populate("user")

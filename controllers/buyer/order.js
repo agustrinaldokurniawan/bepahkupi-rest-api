@@ -4,22 +4,18 @@ const Cart = require("../../models/cart");
 const Destination = require("../../models/destination");
 const Voucher = require("../../models/voucher");
 const orderid = require("order-id")("mysecret");
+const xendit = require("xendit-node");
 
 const MyNumeral = require("numeral");
 
 const request = require("request");
+const cart = require("../../models/cart");
 
 var RajaOngkir = require("rajaongkir-nodejs").Pro(process.env.RAJA_ONGKIR);
 
-const midtransClient = require("midtrans-client");
+const x = new xendit({ secretKey: process.env.XENDIT_PROD });
 
-// let core = new midtransClient.CoreApi();
-
-// core.apiConfig.set({
-//   isProduction: true,
-//   serverKey: process.env.MIDTRANS_SERVER_KEY,
-//   clientKey: process.env.MIDTRANS_CLIENT_KEY,
-// });
+// const x = new xendit({ secretKey: process.env.XENDIT_TEST });
 
 exports.checkout = (req, res) => {
   const { userId, cartId, voucher } = req.body;
@@ -45,8 +41,53 @@ exports.checkout = (req, res) => {
   });
 };
 
-exports.payment = (req, res) => {
-  const { userId, cartId, payment, shipping, promoCode } = req.body;
+exports.paymentChannels = (req, res, next) => {
+  const { VirtualAcc, EWallet } = x;
+  const vaSpecificOptions = {};
+  const va = new VirtualAcc(vaSpecificOptions);
+
+  let paymentChannels = [];
+
+  va.getVABanks()
+    .then((r) => {
+      let vaArr = [];
+      let eWalletArr = [];
+      r.map((item, key) => {
+        if (item.code !== "BCA") {
+          vaArr.push({
+            type: "fva",
+            label: item.name,
+            value: item,
+          });
+        }
+      });
+
+      paymentChannels.push({ label: "Virtual Bank", options: vaArr });
+
+      // Object.keys(EWallet.Type).map((eWalletItem, eWalletKey) => {
+      //   eWalletArr.push({ label: eWalletItem, value: eWalletItem });
+      // });
+
+      // paymentChannels.push({
+      //   label: "E Wallet",
+      //   type: "ewallet",
+      //   options: [
+      //     {
+      //       label: "LinkAja",
+      //       value: { name: "Link Aja", code: "LINKAJA" },
+      //     },
+      //   ],
+      // });
+
+      return res.json({ paymentChannels });
+    })
+    .catch((err) => {
+      return res.json(err);
+    });
+};
+
+exports.payment = (req, res, next) => {
+  const { cartId, userId, payment, shipping, promoCode } = req.body;
 
   User.findOne({ _id: userId, status: "active" }, (err, docs) => {
     if (err) return res.json(err);
@@ -65,170 +106,244 @@ exports.payment = (req, res) => {
 
         if (!docs) return res.status(403).json({ message: "Cart not found" });
 
-        let amount = docs.cart.totalPrice;
-
-        if (promoCode) {
-          Voucher.findOne({ code: promoCode }, (err, docs) => {
-            if (er) return res.json(err);
-
-            if (docs) {
-              amount -= docs.value;
-            }
-          });
-        }
-
-        let parameter = {};
-
-        if (payment.type == "gopay") {
-          parameter = {
-            payment_type: payment.type,
-            transaction_details: {
-              gross_amount: docs.cart.totalPrice + shipping.courier.cost,
-              order_id: orderid.generate(),
-            },
-            customer_details: {
-              first_name: shipping.name,
-              email: shipping.email,
-              phone: shipping.phoneNumber,
-              billing_address: {
-                first_name: shipping.name,
-                email: shipping.email,
-                phone: shipping.phoneNumber,
-                address: shipping.address,
-                destination_details: shipping.destination_details,
-              },
-            },
-          };
+        if (payment.type == "fva") {
+          paymentFVA(req.body, docs);
         } else {
-          parameter = {
-            payment_type: payment.type,
-            bank_transfer: {
-              bank: payment.name,
-              free_text: {
-                payment: [
-                  {
-                    id: "Bepahkupi Store",
-                    en: "Bepahkupi Store",
-                  },
-                ],
-              },
-            },
-            transaction_details: {
-              gross_amount: docs.cart.totalPrice + shipping.courier.cost,
-              order_id: orderid.generate(),
-            },
-            customer_details: {
-              first_name: shipping.name,
-              email: shipping.email,
-              phone: shipping.phoneNumber,
-              billing_address: {
-                first_name: shipping.name,
-                email: shipping.email,
-                phone: shipping.phoneNumber,
-                address: shipping.address,
-                destination_details: shipping.destination_details,
-              },
-            },
-          };
+          paymentEwallet(req.body, docs);
         }
-
-        // console.log(parameter);
-
-        // return res.json({ order: newOrder });
-
-        request(
-          {
-            uri: "https://api.midtrans.com/v2/charge",
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              Authorization: `Basic TWlkLXNlcnZlci14bWVPYkxWSnVURlpTbXhGRnN5RDd3czg6`,
-              "Content-Type": "application/json",
-            },
-            json: parameter,
-          },
-          (error, response, body) => {
-            if (err) return res.json(err);
-            console.log(body);
-            const newOrder = new Order({
-              user: userId,
-              cart: cartId,
-              voucher: promoCode,
-              shipping: {
-                name: shipping.name,
-                email: shipping.email,
-                phoneNumber: shipping.phoneNumber,
-                address: shipping.address,
-                courier: {
-                  weight: shipping.courier.weight,
-                  estimation: shipping.courier.estimation,
-                  courier: shipping.courier.courier,
-                  service: shipping.courier.service,
-                  cost: shipping.courier.cost,
-                  destination_details: shipping.destination_details,
-                },
-              },
-              payment: {
-                type: payment.type,
-                name: payment.name,
-                response: body,
-              },
-              amount: amount + shipping.courier.cost,
-            });
-
-            newOrder.save((err, docs) => {
-              if (err) return res.json(err);
-
-              return res.json({ order: docs });
-            });
-          }
-        );
-
-        // core.charge(parameter).then((chargeResponse) => {
-        //   const newOrder = new Order({
-        //     user: userId,
-        //     cart: cartId,
-        //     voucher: promoCode,
-        //     shipping: {
-        //       name: shipping.name,
-        //       email: shipping.email,
-        //       phoneNumber: shipping.phoneNumber,
-        //       address: shipping.address,
-        //       courier: {
-        //         weight: shipping.courier.weight,
-        //         estimation: shipping.courier.estimation,
-        //         courier: shipping.courier.courier,
-        //         service: shipping.courier.service,
-        //         cost: shipping.courier.cost,
-        //         destination_details: shipping.destination_details,
-        //       },
-        //     },
-        //     payment: {
-        //       type: payment.type,
-        //       name: payment.name,
-        //       response: chargeResponse,
-        //     },
-        //     amount: amount + shipping.courier.cost,
-        //   });
-
-        //   // console.log(newOrder);
-
-        //   // return res.json({ order: newOrder });
-
-        //   docs.status = "finish";
-
-        //   docs.save((err) => {
-        //     if (err) return res.json(err);
-
-        //     newOrder.save((err, docs) => {
-        //       if (err) return res.json(err);
-
-        //       return res.json({ order: docs });
-        //     });
-        //   });
-        // });
       });
   });
+
+  res.end();
+};
+
+const paymentEwallet = (data, cart) => {
+  // const { cartId, userId, payment, shipping, promoCode } = data;
+
+  // let arr = [];
+  // cart.cart.cart.map((item, key) => {
+  //   arr.push({
+  //     id: item.product._id,
+  //     name: item.product.name,
+  //     price: item.price,
+  //     quantity: item.quantity,
+  //   });
+  // });
+
+  console.log("hi");
+  const myPromise = new Promise(async (resolve, reject) => {
+    const { EWallet } = x;
+    const vaSpecificOptions = {};
+    const ew = new EWallet(vaSpecificOptions);
+    const resp = await ew.createPayment({
+      externalID: "1",
+      amount: 1000,
+      items: [
+        {
+          id: "345678",
+          name: "Powerbank",
+          price: 200000,
+          quantity: 1,
+        },
+      ],
+      callbackURL: `${process.env.API_URI}/user/order/paymentNotifPaidEwallet`,
+      redirectURL: `${process.env.API_URI}/user/order/paymentNotifPaidEwallet`,
+      ewalletType: EWallet.Type.LinkAja,
+      // externalID: cartId,
+      // amount: cart.cart.totalPrice + shipping.courier.cost,
+      // items: [...arr],
+      // callbackURL: `${process.env.API_URI}/user/order/paymentNotifPaidEwallet`,
+      // redirectURL: `${process.env.API_URI}/user/order/paymentNotifPaidEwallet`,
+      // ewalletType: payment.value.code,
+    });
+
+    resolve(resp);
+    reject("err");
+  });
+
+  myPromise
+    .then((r) => {
+      const newOrder = new Order({
+        user: userId,
+        cart: cartId,
+        voucher: promoCode,
+        shipping: {
+          name: shipping.name,
+          email: shipping.email,
+          phoneNumber: shipping.phoneNumber,
+          address: shipping.address,
+          courier: {
+            weight: shipping.courier.weight,
+            estimation: shipping.courier.estimation,
+            courier: shipping.courier.courier,
+            service: shipping.courier.service,
+            cost: shipping.courier.cost,
+            destination_details: shipping.destination_details,
+          },
+        },
+        payment: {
+          type: payment.type,
+          name: payment.name,
+          response: r,
+        },
+        amount: r.amount,
+      });
+
+      console.log(r);
+      return res.json({ docs });
+
+      // console.log({ newOrder });
+      cart.status = "finish";
+
+      cart.save((err, docs) => {
+        if (err) return err;
+        newOrder.save((err, docs) => {
+          if (err) return err;
+
+          return docs;
+        });
+        return docs;
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      throw err;
+    });
+};
+
+const paymentFVA = (data, cart) => {
+  const { cartId, userId, payment, shipping, promoCode } = data;
+
+  const myPromise = new Promise(async (resolve, reject) => {
+    const { VirtualAcc } = x;
+    const vaSpecificOptions = {};
+    const va = new VirtualAcc(vaSpecificOptions);
+    const resp = await va.createFixedVA({
+      externalID: cartId,
+      bankCode: payment.value.code,
+      name: shipping.name,
+      expectedAmt: cart.cart.totalPrice + shipping.courier.cost,
+      isClosed: true,
+      isSingleUse: true,
+    });
+
+    resolve(resp);
+    reject("err");
+  });
+
+  myPromise
+    .then((r) => {
+      const newOrder = new Order({
+        user: userId,
+        cart: cartId,
+        voucher: promoCode,
+        shipping: {
+          name: shipping.name,
+          email: shipping.email,
+          phoneNumber: shipping.phoneNumber,
+          address: shipping.address,
+          courier: {
+            weight: shipping.courier.weight,
+            estimation: shipping.courier.estimation,
+            courier: shipping.courier.courier,
+            service: shipping.courier.service,
+            cost: shipping.courier.cost,
+            destination_details: shipping.destination_details,
+          },
+        },
+        payment: {
+          type: payment.type,
+          name: payment.name,
+          response: r,
+        },
+        amount: r.expected_amount,
+      });
+
+      // console.log({ newOrder });
+      cart.status = "finish";
+
+      cart.save((err, docs) => {
+        if (err) return err;
+        newOrder.save((err, docs) => {
+          if (err) return err;
+
+          return docs;
+        });
+        return docs;
+      });
+    })
+    .catch((err) => {
+      throw err;
+    });
+};
+
+exports.paymentNotifCreatedFVA = (req, res) => {
+  const response = req.body;
+
+  return res.json(response);
+};
+
+exports.paymentNotifPaidFVA = (req, res) => {
+  const response = req.body;
+
+  // return res.json(response);
+
+  Order.findOne({
+    "payment.response.external_id": response.external_id,
+  }).exec((err, docs) => {
+    if (err) return res.json(err);
+    if (docs) {
+      docs.payment.response = response;
+      docs.status = "packaging";
+
+      docs.save((err, docs) => {
+        if (err) return res.json(err);
+
+        return res.json(response);
+      });
+    }
+  });
+};
+
+exports.paymentEwallet = (req, res) => {
+  const { cartId } = req.body;
+
+  const { EWallet } = x;
+  const vaSpecificOptions = {};
+  const ew = new EWallet(vaSpecificOptions);
+
+  ew.createPayment({
+    externalID: cartId,
+    amount: 10000,
+    phone: "08123123123",
+    ewalletType: "OVO",
+  })
+    .then((r) => {
+      return res.json(r);
+    })
+    .catch((err) => {
+      return res.json(err);
+    });
+};
+
+exports.paymentNotifCreatedEwallet = (req, res) => {
+  const response = req.body;
+
+  console.log(response);
+
+  // if(response.status == 'PRNDING'){
+  //   console.log('Payment Pending')
+  // }
+
+  return res.json(response);
+};
+
+exports.paymentNotifPaidEwallet = (req, res) => {
+  const response = req.body;
+
+  console.log({ response });
+
+  return res.json(response);
 };
 
 exports.destinationList = (req, res) => {
@@ -367,28 +482,4 @@ exports.readAllByUser = (req, res) => {
 
       return res.json({ orders: docs });
     });
-};
-
-exports.paymentNotif = (req, res) => {
-  const response = req.body;
-
-  Order.findOne({
-    "payment.response.transaction_id": response.transaction_id,
-  }).exec((err, docs) => {
-    if (err) return res.json(err);
-    if (docs) {
-      if (response.transaction_status == "settlement") {
-        docs.payment.response = response;
-        docs.status = "packaging";
-
-        docs.save((err, docs) => {
-          if (err) return res.json(err);
-
-          res.end();
-        });
-      }
-    }
-
-    res.end();
-  });
 };

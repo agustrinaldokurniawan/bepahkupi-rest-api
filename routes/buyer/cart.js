@@ -11,6 +11,8 @@ const {
   decreasebyQuantity,
 } = require("../../controllers/buyer/cart");
 
+const { paymentChannels } = require("../../controllers/buyer/order");
+
 router
   .post("/cart/inc-by-qty", increaseByQuantity)
   .post("/cart/dec-by-qty", decreasebyQuantity)

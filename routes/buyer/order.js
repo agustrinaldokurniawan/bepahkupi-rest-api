@@ -4,21 +4,33 @@ const router = express.Router();
 
 const {
   checkout,
-  payment,
+  paymentFVA,
   destinationList,
   shippingMethodList,
   addressList,
   readAllByUser,
-  paymentNotif,
+  paymentNotifCreatedFVA,
+  paymentNotifPaidFVA,
+  paymentChannels,
+  paymentEwallet,
+  paymentNotifCreatedEwallet,
+  paymentNotifPaidEwallet,
+  payment,
 } = require("../../controllers/buyer/order");
 
 router
   .post("/order/checkout", checkout)
-  .post("/order/payment", payment)
   .get("/order/destination", destinationList)
+  .get("/order/payment-channels", paymentChannels)
   .get("/order/address", addressList)
   .get("/order/readAllByUser", readAllByUser)
-  .post("/order/paymentNotif", paymentNotif)
+  .post("/order/payment", payment)
+  // .post("/order/paymentFVA", paymentFVA)
+  .post("/order/paymentNotifCreatedFVA", paymentNotifCreatedFVA)
+  .post("/order/paymentNotifPaidFVA", paymentNotifPaidFVA)
+  .post("/order/paymentEwallet", paymentEwallet)
+  .post("/order/paymentNotifCreatedEwallet", paymentNotifCreatedEwallet)
+  .post("/order/paymentNotifPaidEwallet", paymentNotifPaidEwallet)
   .get("/order/shipping", shippingMethodList);
 // .get("/order/citytodb", addCityToDB);
 
