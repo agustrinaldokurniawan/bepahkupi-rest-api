@@ -4,11 +4,11 @@ const bodyParser = require("body-parser");
 var multer = require("multer");
 require("dotenv").config();
 const morgan = require("morgan");
-const CORS = require("cors");
+const cors = require("cors");
 
 const app = express();
 
-app.use(CORS());
+app.use(cors());
 
 mongoose.connect(
   process.env.MONGODB,
@@ -46,7 +46,7 @@ app.use(
   userReviewRoutes
 );
 
-const server = app.listen(process.env.PORT || 8000, (err) => {
+const server = app.listen(5000, (err) => {
   if (err) return console.log(err);
   console.log(`App is running on port ${server.address().port}`);
 });
