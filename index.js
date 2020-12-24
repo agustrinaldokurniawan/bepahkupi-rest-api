@@ -46,7 +46,8 @@ app.use(
   userReviewRoutes
 );
 
-const server = app.listen(process.env.PORT || 8000, (err) => {
-  if (err) return console.log(err);
-  console.log(`App is running on port ${server.address().port}`);
+const port = process.env.PORT || 5000;
+
+app.listen(port, () => {
+  console.log(`Running on port ${port}`);
 });
