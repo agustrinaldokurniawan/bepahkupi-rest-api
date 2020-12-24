@@ -34,7 +34,8 @@ const userOrderRoutes = require("./routes/buyer/order");
 const userWishlistRoutes = require("./routes/buyer/wishlist");
 const userReviewRoutes = require("./routes/buyer/review");
 
-app.use("/admin", adminAccountRoutes, adminProductRoutes);
+app.use("/admin", adminAccountRoutes);
+app.use("/admin", adminProductRoutes);
 
 app.use(
   "/user",
@@ -45,6 +46,12 @@ app.use(
   userWishlistRoutes,
   userReviewRoutes
 );
+app.use("/user", userReviewRoutes);
+app.use("/user", userWishlistRoutes);
+app.use("/user", userOrderRoutes);
+app.use("/user", userCartRoutes);
+app.use("/user", userProductRoutes);
+app.use("/user", userAccountRoutes);
 
 const port = process.env.PORT || 5000;
 
