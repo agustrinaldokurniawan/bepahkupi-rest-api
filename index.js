@@ -4,11 +4,11 @@ const bodyParser = require("body-parser");
 var multer = require("multer");
 require("dotenv").config();
 const morgan = require("morgan");
-const CORS = require("cors");
+const cors = require("cors");
 
 const app = express();
 
-app.use(CORS());
+app.use(cors());
 
 mongoose.connect(
   process.env.MONGODB,
