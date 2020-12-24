@@ -35,10 +35,6 @@ const userReviewRoutes = require("./routes/buyer/review");
 
 app.use("/admin", adminAccountRoutes, adminProductRoutes);
 
-app.use("/", (req, res) => {
-  return res.json("Bepahkupi APIs");
-});
-
 app.use(
   "/user",
   userAccountRoutes,

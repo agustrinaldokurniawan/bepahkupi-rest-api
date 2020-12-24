@@ -20,6 +20,9 @@ router
   .post("/account/delete", deleteAccount)
   .post("/account/forgot-password", forgotPassword)
   .post("/account/change-password", changePassword)
-  .post("/account/login", login);
+  .post("/account/login", login)
+  .get("/", (req, res) => {
+    return res.json("Bepahkupi APIs");
+  });
 
 module.exports = router;
