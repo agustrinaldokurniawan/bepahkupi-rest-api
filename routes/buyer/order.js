@@ -16,6 +16,8 @@ const {
   paymentNotifCreatedEwallet,
   paymentNotifPaidEwallet,
   payment,
+  readAll,
+  updateOrder,
 } = require("../../controllers/buyer/order");
 
 router
@@ -24,6 +26,8 @@ router
   .get("/order/payment-channels", paymentChannels)
   .get("/order/address", addressList)
   .get("/order/readAllByUser", readAllByUser)
+  .get("/order/readAll", readAll)
+  .post("/order/updateOrder", updateOrder)
   .post("/order/payment", payment)
   // .post("/order/paymentFVA", paymentFVA)
   .post("/order/paymentNotifCreatedFVA", paymentNotifCreatedFVA)

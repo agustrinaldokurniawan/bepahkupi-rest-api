@@ -483,3 +483,36 @@ exports.readAllByUser = (req, res) => {
       return res.json({ orders: docs });
     });
 };
+
+exports.readAll = (req, res) => {
+  Order.find({ status: { $ne: "fail" } })
+    .sort({ field: "asc", createdAt: -1 })
+    .populate({
+      path: "cart",
+      model: "Cart",
+      populate: { path: "cart.cart.product", model: "Product" },
+    })
+    .exec((err, docs) => {
+      if (err) return res.json(err);
+
+      if (docs.length < 1) return res.json({ message: "No order data" });
+
+      return res.json({ orders: docs });
+    });
+};
+
+exports.updateOrder = (req, res) => {
+  const { orderId, status } = req.body;
+
+  Order.find({ _id: orderId }).exec((err, docs) => {
+    if (err) return res.json(err);
+
+    docs.status = status;
+
+    docs.save((err, docs) => {
+      if (err) return res.json(err);
+
+      return res.json({ message: "Order updated!" });
+    });
+  });
+};
