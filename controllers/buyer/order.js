@@ -504,10 +504,12 @@ exports.readAll = (req, res) => {
 exports.updateOrder = (req, res) => {
   const { orderId, status } = req.body;
 
-  Order.find({ _id: orderId }).exec((err, docs) => {
+  Order.findOne({ _id: orderId }).exec((err, docs) => {
     if (err) return res.json(err);
 
-    docs.status = status;
+    if (docs) {
+      docs.status = status;
+    }
 
     docs.save((err, docs) => {
       if (err) return res.json(err);
