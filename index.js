@@ -34,6 +34,8 @@ const userOrderRoutes = require("./routes/buyer/order");
 const userWishlistRoutes = require("./routes/buyer/wishlist");
 const userReviewRoutes = require("./routes/buyer/review");
 
+const kafeCreateFileRoutes = require("./routes/buyer/kafe");
+
 app.use("/admin", adminAccountRoutes);
 app.use("/admin", adminProductRoutes);
 
@@ -52,6 +54,7 @@ app.use("/user", userOrderRoutes);
 app.use("/user", userCartRoutes);
 app.use("/user", userProductRoutes);
 app.use("/user", userAccountRoutes);
+app.use("/user", kafeCreateFileRoutes);
 
 const port = process.env.PORT || 5000;
 
